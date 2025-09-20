@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>PyCLI v1.0</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono:wght@400&display=swap');
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #c9d1d9;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(201, 209, 217, 0.02) 2px,
+          rgba(201, 209, 217, 0.02) 4px
+        );
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    #header {
+      position: relative;
+      z-index: 2;
+      padding: 15px;
+      background: linear-gradient(135deg, #161b22 0%, #21262d 100%);
+      border-bottom: 2px solid #58a6ff;
+      color: #58a6ff;
+      font-weight: bold;
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 18px;
+      text-shadow: 0 0 5px rgba(88, 166, 255, 0.3);
+      box-shadow: 0 2px 8px rgba(88, 166, 255, 0.1);
+    }
+    
+    #header::before {
+      content: '[';
+      margin-right: 10px;
+    }
+    
+    #header::after {
+      content: ']';
+      margin-left: 10px;
+    }
+    
+    #output {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.8);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    #output::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    #output::-webkit-scrollbar-track {
+      background: #21262d;
+    }
+    
+    #output::-webkit-scrollbar-thumb {
+      background: #58a6ff;
+      border-radius: 4px;
+    }
+    
+    #inputbar {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      padding: 15px;
+      gap: 10px;
+      border-top: 2px solid #58a6ff;
+      background: linear-gradient(135deg, #161b22 0%, #21262d 100%);
+      box-shadow: 0 -2px 8px rgba(88, 166, 255, 0.1);
+    }
+    
+    .prompt {
+      min-width: 140px;
+      color: #79c0ff;
+      text-shadow: 0 0 3px rgba(121, 192, 255, 0.3);
+      font-weight: bold;
+    }
+    
+    .prompt::before {
+      content: '> ';
+      color: #ffa657;
+      text-shadow: 0 0 3px rgba(255, 166, 87, 0.3);
+    }
+    
+    input {
+      flex: 1;
+      background: rgba(13, 17, 23, 0.8);
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 12px;
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      border-radius: 0;
+      font-size: 14px;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #58a6ff;
+      box-shadow: 0 0 5px rgba(88, 166, 255, 0.3);
+    }
+    
+    button {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+      border: 1px solid #238636;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: 'Share Tech Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+    }
+    
+    button:hover {
+      background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
+      box-shadow: 0 0 8px rgba(46, 160, 67, 0.4);
+    }
+    
+    #clear {
+      background: linear-gradient(135deg, #da3633 0%, #f85149 100%);
+      border-color: #da3633;
+    }
+    
+    #clear:hover {
+      background: linear-gradient(135deg, #f85149 0%, #ff7b72 100%);
+      box-shadow: 0 0 8px rgba(248, 81, 73, 0.4);
+    }
+    
+    .stderr {
+      color: #ff7b72;
+      text-shadow: 0 0 2px rgba(255, 123, 114, 0.3);
+      animation: fadein 0.3s ease-in;
+    }
+    
+    .stdout {
+      color: #c9d1d9;
+      white-space: pre-wrap;
+      animation: fadein 0.3s ease-in;
+    }
+    
+    .stdin {
+      color: #79c0ff;
+    }
+    
+    .line {
+      margin-bottom: 8px;
+      padding: 2px 0;
+    }
+    
+    .cursor {
+      display: inline-block;
+      background: #58a6ff;
+      width: 2px;
+      height: 14px;
+      animation: blink 1s infinite;
+      margin-left: 2px;
+    }
+    
+    @keyframes fadein {
+      from { 
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+    
+    /* Retro startup effect */
+    body.startup {
+      animation: startup 2s ease-out;
+    }
+    
+    @keyframes startup {
+      0% { 
+        background: #000;
+        filter: brightness(0);
+      }
+      50% {
+        filter: brightness(0.5);
+      }
+      100% {
+        filter: brightness(1);
+      }
+    }
+  </style>
+</head>
+<body class="startup">
+  <div id="header">PyCLI v1.0</div>
+
+  <div id="output"></div>
+
+  <div id="inputbar">
+    <div class="prompt" id="prompt">/tmp</div>
+    <input id="cmd" type="text" placeholder="Enter command..."/>
+    <span class="cursor"></span>
+    <button id="send">Execute</button>
+    <button id="clear">Reset</button>
+  </div>
+
+  <script>
+    let cwd = "/tmp";
+    
+    // Remove startup class after animation
+    setTimeout(() => {
+      document.body.classList.remove('startup');
+    }, 2000);
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      const out = document.getElementById("output");
+      const input = document.getElementById("cmd");
+      const send = document.getElementById("send");
+      const clearBtn = document.getElementById("clear");
+      const promptEl = document.getElementById("prompt");
+
+      function appendLine(content, cls){
+        const d = document.createElement("div");
+        d.className = "line " + cls;
+        d.innerHTML = content;
+        out.appendChild(d);
+        out.scrollTop = out.scrollHeight;
+      }
+
+      function updatePrompt(){
+        promptEl.textContent = cwd;
+      }
+
+      async function runCmd(cmd){
+        if(!cmd.trim()) return;
+        
+        // Show command with retro styling
+        appendLine(`<span class='prompt'>${cwd} > </span><span>${cmd}</span>`, "stdin");
+        
+        const res = await fetch("/api/exec", {
+          method: "POST",
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({cmd: cmd, cwd: cwd})
+        });
+        
+        const j = await res.json();
+        
+        if(j.stdout) {
+          appendLine(`<div class='stdout'>${escapeHtml(j.stdout)}</div>`, "stdout");
+        }
+        
+        if(j.stderr) {
+          appendLine(`<div class='stderr'>ERROR: ${escapeHtml(j.stderr)}</div>`, "stderr");
+        }
+        
+        cwd = j.cwd || cwd;
+        updatePrompt();
+      }
+
+      function escapeHtml(s){
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      }
+
+      // Event handlers
+      send.onclick = () => { 
+        runCmd(input.value); 
+        input.value=""; 
+      };
+      
+      input.onkeypress = (e) => { 
+        if(e.key === "Enter") { 
+          send.click(); 
+          e.preventDefault(); 
+        } 
+      };
+      
+      clearBtn.onclick = () => { 
+        out.innerHTML = ""; 
+        appendLine("<span style='color: #ffa657;'>SYSTEM RESET - TERMINAL CLEARED</span>", "system");
+      };
+
+      // Initialize with welcome message
+      setTimeout(() => {
+        appendLine("<span style='color: #58a6ff; font-weight: bold;'>═══════════════════════════════════════</span>", "system");
+        appendLine("<span style='color: #58a6ff; font-weight: bold;'>    RETROSHELL TERMINAL v1.0 ONLINE    </span>", "system");
+        appendLine("<span style='color: #58a6ff; font-weight: bold;'>═══════════════════════════════════════</span>", "system");
+        appendLine("<span style='color: #ffa657;'>Type 'help' for available commands</span>", "system");
+        runCmd("pwd");
+      }, 500);
+    });
+  </script>
+</body>
+</html>
