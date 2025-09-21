@@ -100,7 +100,7 @@ python cli.py
 
 ## Deployment
 
-This application is ready for deployment on PaaS providers like Heroku. The `Procfile` is configured to use `gunicorn` as the production web server:
+This application is ready for deployment on PaaS providers like render. The `Procfile` is configured to use `gunicorn` as the production web server:
 
 ```
 web: gunicorn webapp:app
